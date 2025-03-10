@@ -2,7 +2,7 @@
 import os
 import sys
 from fuse import FUSE, Operations
-from opts.base import Base_Opt
+from modules.base import Base_Opt
 
 class QuarkFS(Operations):
     def __init__(self, root, optimizer:Base_Opt):
@@ -14,6 +14,9 @@ class QuarkFS(Operations):
         return os.path.join(self.root, partial.lstrip('/'))
 
     def read(self, path, size, offset, fh):
+        # TODO: Check if the file is already in cache
+            # read from cache if so
+        # self.OPTM.get_from_cache(file)
         os.lseek(fh, offset, os.SEEK_SET)
         buf = os.read(fh, size)
         # logs the read
@@ -77,7 +80,7 @@ if __name__ == '__main__':
     if len(sys.argv) != 3:
         print(f'Usage: {sys.argv[0]} <source-dir> <mount-point>')
         exit(1)
-
+    # TODO: make the source_dir a temporary folder? or write a seperate benchmark program that reads and writes
     source_dir = sys.argv[1]
     mount_point = sys.argv[2]
 
