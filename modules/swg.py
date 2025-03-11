@@ -2,7 +2,7 @@
     Simple Weighted Graph that will be used to predict the next potential read.
     It will greedly pick the edge with highest weight.
 '''
-from base import Base_Opt
+from modules.base import Base_Opt
 
 class SWG_Opt(Base_Opt):
     graph: dict
@@ -20,7 +20,7 @@ class SWG_Opt(Base_Opt):
     def __init__(self):
         super().__init__()
         self.graph = {}
-
+    
     def log_read(self, file_read: str):
         super().log_read(file_read)
         last_file_read = self.last_file_read(file_read)
@@ -33,4 +33,9 @@ class SWG_Opt(Base_Opt):
             self.graph[last_file_read][file_read] += 1 
 
 
-#def predict(file_read):
+    def predict_nexts(self, file_read):
+        if file_read in self.graph:
+            file_graph = self.graph[file_read]
+            assert isinstance(file_graph, dict)
+            next_file = max(file_graph, key=lambda k: file_graph[k])
+            return next_file

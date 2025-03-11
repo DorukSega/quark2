@@ -1,34 +1,62 @@
 #!/usr/bin/env python
 import os
 import sys
+from threading import Thread
+from time import sleep
 from fuse import FUSE, Operations
 from modules.base import Base_Opt
+from modules.fcache import FileCacheManager
+from modules.swg import SWG_Opt
 
 class QuarkFS(Operations):
-    def __init__(self, root, optimizer:Base_Opt):
+    OPTM: Base_Opt
+    CACHE: FileCacheManager
+    def __init__(self, root: str, optimizer:Base_Opt, fcache:FileCacheManager):
         self.root = os.path.realpath(root)
         self.OPTM = optimizer
+        self.CACHE = fcache
+        self.CACHE.root = self.root
+        Thread(target=self._log_cache, daemon=True).start()
+
+    def _log_cache(self):
+        while True: 
+            self.CACHE.cache_status()
+            sleep(5)
 
     # Helper to map paths
     def full_path(self, partial):
         return os.path.join(self.root, partial.lstrip('/'))
 
     def read(self, path, size, offset, fh):
-        # TODO: Check if the file is already in cache
-            # read from cache if so
-        # self.OPTM.get_from_cache(file)
+        def log_predict(p_header='Read'): # logs the read and predicts next
+            if self.OPTM.last_file_read() != path:
+                self.OPTM.log_read(path)
+                print(f"{p_header}: {path} @ offset {offset} size {size}")
+                predictions = self.OPTM.predict_nexts(path)
+                if predictions:
+                    print(f'Predicted: {predictions}')
+                    if isinstance(predictions, str):
+                        # single file instead of multiple
+                        self.CACHE.request_file(predictions)
+                    elif isinstance(predictions, list): # TODO: confirm order works
+                        for file in predictions:
+                            self.CACHE.request_file(file)
+
+        # Check if the file is already in cache
+        buff_cached, len_cached = self.CACHE.is_in_cache(path)
+        #if len_cached: print(f'{len(buff_cached)} == {len_cached}')
+        if len_cached:
+            log_predict('Cache hit')
+            return buff_cached[offset:offset + size]
         os.lseek(fh, offset, os.SEEK_SET)
         buf = os.read(fh, size)
-        # logs the read
-        self.OPTM.log_read(path)
-        print(f"Intercepted read: {path} @ offset {offset} size {size}")
-        self.OPTM.status_fmt()
+        log_predict()
         return buf
 
     def write(self, path, data, offset, fh):
         os.lseek(fh, offset, os.SEEK_SET)
         written = os.write(fh, data)
-        print(f"Intercepted write: {path} @ offset {offset} size {len(data)}")
+        print(f"Write: {path} @ offset {offset} size {len(data)}")
         return written
 
     def create(self, path, mode, fi=None):
@@ -84,7 +112,17 @@ if __name__ == '__main__':
     source_dir = sys.argv[1]
     mount_point = sys.argv[2]
 
-    test_OPT = Base_Opt()
+    test_OPT = SWG_Opt()
+    file_cache = FileCacheManager()
 
-    fuse = FUSE(QuarkFS(source_dir, test_OPT), mount_point, foreground=True)
+    while False: # for debugging cacher
+        # cmp --silent ./data/a ./test || echo "files are different"
+        user_input = input("Enter file to request or 's' for status: ")
+        if user_input.lower() == 's':
+            file_cache.cache_status()
+        if user_input.lower() == 'x':
+            break
+        else:
+            file_cache.request_file(user_input)
 
+    fuse = FUSE(QuarkFS(source_dir, test_OPT, file_cache), mount_point, foreground=True)
