@@ -43,11 +43,12 @@ class QuarkFS(Operations):
                             self.CACHE.request_file(file)
 
         # Check if the file is already in cache
-        buff_cached, len_cached = self.CACHE.is_in_cache(path)
+        #buff_cached, len_cached = self.CACHE.is_in_cache(path)
+        buff_cached = self.CACHE.read_cache(path, size, offset)
         #if len_cached: print(f'{len(buff_cached)} == {len_cached}')
-        if len_cached:
+        if buff_cached:
             log_predict('Cache hit')
-            return buff_cached[offset:offset + size]
+            return buff_cached
         os.lseek(fh, offset, os.SEEK_SET)
         buf = os.read(fh, size)
         log_predict()

@@ -30,6 +30,13 @@ class FileCacheManager:
                 return self.cache[filepath], 1
         return None, 0
 
+    def read_cache(self, filepath, size, offset):
+        filepath = normalize_path(filepath)
+        with self.cache_lock:
+            if filepath in self.cache:
+                return self.cache[filepath][offset:offset + size]
+        return None
+
     def cache_status(self):
         with self.cache_lock:
             print(f"Cache: {self.current_cache_size / (1024 ** 2):.2f} MB | Files:", end=" ")
