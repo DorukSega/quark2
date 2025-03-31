@@ -1,23 +1,20 @@
-import threading
 import os
-import gc
-import queue
+from gc import collect
+from queue import Queue
+from threading import Lock, Thread
 from collections import OrderedDict
-
-def normalize_path(path):
-    normalized = os.path.normpath(path).lstrip('/')
-    return normalized
+from modules.index import normalize_path
 
 class FileCacheManager:
     def __init__(self, memory_limit=4 * 1024 ** 3, chunk_size=1024 * 1024):
         self.memory_limit = memory_limit
         self.chunk_size = chunk_size
         self.cache = OrderedDict()
-        self.cache_lock = threading.Lock()
-        self.read_queue = queue.Queue()
+        self.cache_lock = Lock()
+        self.read_queue = Queue()
         self.current_cache_size = 0
         self.root = '.'
-        threading.Thread(target=self._file_reader_thread, daemon=True).start()
+        Thread(target=self._file_reader_thread, daemon=True).start()
 
     def request_file(self, filepath):
         filepath = normalize_path(filepath)
@@ -53,7 +50,7 @@ class FileCacheManager:
             if not os.path.exists(filepath_real):
                 print(f'File {filepath_real} does not exist')
                 continue
-            file_size = os.path.getsize(filepath_real) 
+            file_size = os.path.getsize(filepath_real)
             if file_size > self.memory_limit:
                 continue
 
@@ -63,13 +60,13 @@ class FileCacheManager:
                     continue
                 while self.current_cache_size+file_size > self.memory_limit:
                     _, removed_info = self.cache.popitem(last=False)
-                    self.current_cache_size -= removed_info['size']
+                    self.current_cache_size -= len(removed_info)
                     del removed_info
-                    gc.collect()
+                    collect()
 
             file_data = b''
             with open(filepath_real, 'rb') as f:
-                file_data= f.read()
+                file_data = f.read()
             assert file_size == len(file_data)
 
             with self.cache_lock:

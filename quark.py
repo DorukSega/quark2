@@ -2,50 +2,71 @@
 import os
 import sys
 from threading import Thread
-from time import sleep
 from fuse import FUSE, Operations
-from modules.base import Base_Opt
+from modules.OPT_base import Base_Opt
 from modules.fcache import FileCacheManager
-from modules.swg import SWG_Opt
+from modules.OPT_swg import SWG_Opt
+from modules.OPT_markov import Markov_Opt
+from modules.OPT_LSTM import LSTM_Opt
 
 class QuarkFS(Operations):
     OPTM: Base_Opt
     CACHE: FileCacheManager
-    def __init__(self, root: str, optimizer:Base_Opt, fcache:FileCacheManager):
+    enable_opt: bool
+
+    def __init__(self, root: str, optimizer: Base_Opt, fcache: FileCacheManager):
         self.root = os.path.realpath(root)
         self.OPTM = optimizer
         self.CACHE = fcache
         self.CACHE.root = self.root
+        self.enable_opt = False
         Thread(target=self._log_cache, daemon=True).start()
+        self.prediction_count = 0 #TODO:make it so it only predicts every x runs
 
     def _log_cache(self):
-        while True: 
-            self.CACHE.cache_status()
-            sleep(5)
+        while True:
+            ui = input().lower()
+            if ui == 's':
+                self.CACHE.cache_status()
+                self.OPTM.status_fmt()
+            elif ui == 'enable':
+                self.enable_opt = not self.enable_opt
+                print(f'{'enabled' if self.enable_opt else 'disabled'} optimizations')
+            elif ui.startswith('cache'):
+                fn = ui.split('cache')[1].strip()
+                self.CACHE.request_file(fn)
+                print(f'requested {fn}')
+            elif ui.startswith('pred'):
+                fn = ui.split('pred')[1].strip()
+                prediction = self.OPTM.predict_nexts(fn)
+                if prediction:
+                    print(f'predicted {prediction}')
+            elif ui == 'exit':
+                break
 
     # Helper to map paths
     def full_path(self, partial):
         return os.path.join(self.root, partial.lstrip('/'))
 
     def read(self, path, size, offset, fh):
-        def log_predict(p_header='Read'): # logs the read and predicts next
+        def log_predict(p_header='Read'):  # logs the read and predicts next
             if self.OPTM.last_file_read() != path:
                 self.OPTM.log_read(path)
                 print(f"{p_header}: {path} @ offset {offset} size {size}")
-                predictions = self.OPTM.predict_nexts(path)
-                if predictions:
-                    print(f'Predicted: {predictions}')
-                    if isinstance(predictions, str):
-                        # single file instead of multiple
-                        self.CACHE.request_file(predictions)
-                    elif isinstance(predictions, list): # TODO: confirm order works
-                        for file in predictions:
-                            self.CACHE.request_file(file)
+                if self.enable_opt:
+                    predictions = self.OPTM.predict_nexts(path)
+                    if predictions:
+                        print(f'Predicted: {predictions}')
+                        if isinstance(predictions, str):
+                            self.CACHE.request_file(predictions)
+                        elif isinstance(predictions, list):  # TODO: confirm order works
+                            for file in predictions:
+                                self.CACHE.request_file(file)
 
         # Check if the file is already in cache
-        #buff_cached, len_cached = self.CACHE.is_in_cache(path)
+        # buff_cached, len_cached = self.CACHE.is_in_cache(path)
         buff_cached = self.CACHE.read_cache(path, size, offset)
-        #if len_cached: print(f'{len(buff_cached)} == {len_cached}')
+        # if len_cached: print(f'{len(buff_cached)} == {len_cached}')
         if buff_cached:
             log_predict('Cache hit')
             return buff_cached
@@ -113,17 +134,12 @@ if __name__ == '__main__':
     source_dir = sys.argv[1]
     mount_point = sys.argv[2]
 
-    test_OPT = SWG_Opt()
+    test_OPT = Markov_Opt()
     file_cache = FileCacheManager()
 
-    while False: # for debugging cacher
-        # cmp --silent ./data/a ./test || echo "files are different"
-        user_input = input("Enter file to request or 's' for status: ")
-        if user_input.lower() == 's':
-            file_cache.cache_status()
-        if user_input.lower() == 'x':
-            break
-        else:
-            file_cache.request_file(user_input)
-
-    fuse = FUSE(QuarkFS(source_dir, test_OPT, file_cache), mount_point, foreground=True)
+    # cmp --silent ./data/a ./test || echo "files are different"
+    try:
+        fuse = FUSE(QuarkFS(source_dir, test_OPT, file_cache),
+                mount_point, foreground=True)
+    except RuntimeError:
+        print(f'run umount {mount_point}')
