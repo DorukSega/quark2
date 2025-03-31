@@ -165,7 +165,7 @@ class LSTM_Opt(Base_Opt):
                 if idx in self.id_to_file:
                     print(idx)
                     predicted_file = self.id_to_file[idx]
-                    if self._file_exists(predicted_file):
+                    if self.file_exists(predicted_file):
                         return predicted_file
 
         return None

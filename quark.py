@@ -27,8 +27,8 @@ class QuarkFS(Operations):
         while True:
             ui = input().lower()
             if ui == 's':
-                self.CACHE.cache_status()
                 self.OPTM.status_fmt()
+                self.CACHE.cache_status()
             elif ui == 'enable':
                 self.enable_opt = not self.enable_opt
                 print(f'{'enabled' if self.enable_opt else 'disabled'} optimizations')

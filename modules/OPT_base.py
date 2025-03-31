@@ -1,9 +1,13 @@
+from os import path
 class Base_Opt:
     history: list[str] | list
+    file_exists_cache: dict
+    source_dir: str
 
-    def __init__(self):
+    def __init__(self, source_dir=None):
         self.history = []
-        #self.file_exists_cache = {}  # Caches file existence checks
+        self.file_exists_cache = {}  # Caches file existence checks
+        self.source_dir = source_dir
 
     def last_file_read(self, other_than=None) -> str | None:
         if not self.history:
@@ -25,15 +29,8 @@ class Base_Opt:
         # prints last 5 items from history
         print(self.history[-5:])
 
-    def _file_exists(self, filepath):
-        """Check if file exists with caching"""
-        return True
+    def file_exists(self, filepath):
+        '''Check if file exists with caching'''
         if filepath not in self.file_exists_cache:
-            self.file_exists_cache[filepath] = os.path.exists(filepath)
+            self.file_exists_cache[filepath] = path.exists(path.join(self.source_dir, filepath))
         return self.file_exists_cache[filepath]
-        
-    def _clear_obsolete_cache(self, max_size=1000):
-        """Clear cache if it grows too large"""
-        return
-        if len(self.file_exists_cache) > max_size:
-            self.file_exists_cache.clear()
