@@ -33,9 +33,12 @@ class SWG_Opt(Base_Opt):
                 self.graph[last_file_read][file_read] = 0
             self.graph[last_file_read][file_read] += 1
 
-    def predict_nexts(self, file_read):
+    def predict_nexts(self, file_read=None, num_predictions=1):
         if file_read in self.graph:
             file_graph = self.graph[file_read]
             assert isinstance(file_graph, dict)
-            next_file = max(file_graph, key=lambda k: file_graph[k])
-            return next_file
+            # check if the dict is not empty
+            if file_graph:
+                next_file = max(file_graph, key=lambda k: file_graph[k])
+                return next_file
+        return None 

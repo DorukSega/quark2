@@ -37,8 +37,10 @@ class QuarkFS(Operations):
                 self.CACHE.request_file(fn)
                 print(f'requested {fn}')
             elif ui.startswith('pred'):
-                fn = ui.split('pred')[1].strip()
-                prediction = self.OPTM.predict_nexts(fn)
+                box = ui.split(' ')
+                fn = box[1].strip()
+                times = int(box[2].strip()) if len(box) > 2 else 1
+                prediction = self.OPTM.predict_nexts(fn, times)
                 if prediction:
                     print(f'predicted {prediction}')
             elif ui == 'exit':
@@ -54,7 +56,7 @@ class QuarkFS(Operations):
                 self.OPTM.log_read(path)
                 print(f"{p_header}: {path} @ offset {offset} size {size}")
                 if self.enable_opt:
-                    predictions = self.OPTM.predict_nexts(path)
+                    predictions = self.OPTM.predict_nexts(path, num_predictions=2)
                     if predictions:
                         print(f'Predicted: {predictions}')
                         if isinstance(predictions, str):

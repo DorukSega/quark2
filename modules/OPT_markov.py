@@ -45,7 +45,7 @@ class Markov_Opt(Base_Opt):
         # Occasionally clean up the cache
         self._clear_obsolete_cache()
     
-    def predict_nexts(self, file_read=None) -> Optional[str]:
+    def predict_nexts(self, file_read=None, num_predictions=1) -> Optional[str]:
         """
         Predict the next file to be accessed based on recent history
         
@@ -55,9 +55,6 @@ class Markov_Opt(Base_Opt):
         Returns:
             The predicted next file path or None if no prediction can be made
         """
-        # Log the current read if provided
-        if file_read is not None:
-            self.log_read(file_read)
         
         # Try different context lengths, from longest to shortest
         for context_length in range(self.order, 0, -1):

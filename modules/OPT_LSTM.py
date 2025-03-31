@@ -67,7 +67,7 @@ class LSTM_Opt(Base_Opt):
                         file_id = self.file_to_id[file]
                         del self.file_to_id[file]
                         del self.id_to_file[file_id]
-            
+
             self.file_to_id[filepath] = self.next_id
             self.id_to_file[self.next_id] = filepath
             self.next_id += 1
@@ -138,13 +138,10 @@ class LSTM_Opt(Base_Opt):
         if len(self.history) % 5 == 0 and len(self.history) >= 4:
             self.update_model()
     
-    def predict_nexts(self, file_read=None) -> Optional[str]:
+    def predict_nexts(self, file_read=None, num_predictions=1) -> Optional[str]:
         """Predict the next file to be accessed"""
         import torch
         import os
-        
-        if file_read is not None:
-            self.log_read(file_read)
             
         if not self.model_initialized or len(self.history) < 3:
             return None

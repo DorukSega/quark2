@@ -18,7 +18,7 @@ class Base_Opt:
         self.history.append(file_read)
         # train the model here ?
 
-    def predict_nexts(self, file_read):
+    def predict_nexts(self, file_read=None, num_predictions=1):
         return
 
     def status_fmt(self):
