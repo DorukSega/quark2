@@ -4,10 +4,8 @@ class Base_Opt:
     file_exists_cache: dict
     source_dir: str
 
-    def __init__(self, source_dir=None):
+    def __init__(self):
         self.history = []
-        self.file_exists_cache = {}  # Caches file existence checks
-        self.source_dir = source_dir
 
     def last_file_read(self, other_than=None) -> str | None:
         if not self.history:
@@ -28,9 +26,3 @@ class Base_Opt:
     def status_fmt(self):
         # prints last 5 items from history
         print(self.history[-5:])
-
-    def file_exists(self, filepath):
-        '''Check if file exists with caching'''
-        if filepath not in self.file_exists_cache:
-            self.file_exists_cache[filepath] = path.exists(path.join(self.source_dir, filepath))
-        return self.file_exists_cache[filepath]

@@ -7,7 +7,7 @@ from modules.OPT_base import Base_Opt
 from modules.fcache import FileCacheManager
 from modules.OPT_swg import SWG_Opt
 from modules.OPT_markov import Markov_Opt
-from modules.OPT_LSTM import LSTM_Opt
+from modules.OPT_markovadaptive import AdaptiveMarkov_Opt
 
 class QuarkFS(Operations):
     OPTM: Base_Opt
@@ -136,7 +136,7 @@ if __name__ == '__main__':
     source_dir = sys.argv[1]
     mount_point = sys.argv[2]
 
-    test_OPT = Markov_Opt()
+    test_OPT = AdaptiveMarkov_Opt()
     file_cache = FileCacheManager()
 
     # cmp --silent ./data/a ./test || echo "files are different"
