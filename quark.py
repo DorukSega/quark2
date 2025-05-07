@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 import os
 import sys
+import errno
 from threading import Thread
-from fuse import FUSE, Operations
+from fuse import FUSE, Operations, FuseOSError
 from modules.OPT_base import Base_Opt
 from modules.fcache import FileCacheManager
 from modules.OPT_swg import SWG_Opt
@@ -127,6 +128,113 @@ class QuarkFS(Operations):
         print(f"Removing directory: {path}")
         return os.rmdir(full_path)
 
+    def access(self, path, amode):
+        full_path = self.full_path(path)
+        if not os.access(full_path, amode):
+            raise FuseOSError(errno.EACCES)
+        return 0
+
+    def flush(self, path, fh):
+        return os.fsync(fh)
+
+    def fsync(self, path, datasync, fh):
+        return os.fsync(fh)
+
+    def fsyncdir(self, path, datasync, fh):
+        return 0
+
+    def chown(self, path, uid, gid):
+        full_path = self.full_path(path)
+        return os.chown(full_path, uid, gid)
+
+    def utimens(self, path, times=None):
+        full_path = self.full_path(path)
+        return os.utime(full_path, times)
+
+    def truncate(self, path, length, fh=None):
+        full_path = self.full_path(path)
+        with open(full_path, 'r+') as f:
+            f.truncate(length)
+        return 0
+
+    def readlink(self, path):
+        full_path = self.full_path(path)
+        return os.readlink(full_path)
+
+    def mknod(self, path, mode, dev):
+        full_path = self.full_path(path)
+        return os.mknod(full_path, mode, dev)
+
+    def symlink(self, target, source):
+        target_full = self.full_path(target)
+        return os.symlink(source, target_full)
+
+    def link(self, target, source):
+        target_full = self.full_path(target)
+        source_full = self.full_path(source)
+        return os.link(source_full, target_full)
+
+    def rename(self, old, new):
+        old_full = self.full_path(old)
+        new_full = self.full_path(new)
+        return os.rename(old_full, new_full)
+
+    def statfs(self, path):
+        full_path = self.full_path(path)
+        stv = os.statvfs(full_path)
+        return dict((key, getattr(stv, key)) for key in ('f_bavail', 'f_bfree',
+            'f_blocks', 'f_bsize', 'f_favail', 'f_ffree', 'f_files', 'f_flag',
+            'f_frsize', 'f_namemax'))
+
+    def opendir(self, path):
+        full_path = self.full_path(path)
+        return os.open(full_path, os.O_RDONLY)
+
+    def releasedir(self, path, fh):
+        return os.close(fh)
+
+    def destroy(self, path):
+        pass
+
+    def getxattr(self, path, name, position=0):
+        full_path = self.full_path(path)
+        try:
+            return os.getxattr(full_path, name)
+        except OSError as e:
+            # Proper error handling
+            if e.errno == errno.ENOTSUP:
+                raise FuseOSError(errno.ENOTSUP)
+            if e.errno == errno.ENODATA:
+                raise FuseOSError(errno.ENODATA)
+            # General case
+            raise FuseOSError(errno.ENOTSUP)
+
+    def listxattr(self, path):
+        full_path = self.full_path(path)
+        try:
+            return os.listxattr(full_path)
+        except OSError:
+            # If not supported, return empty list
+            return []
+
+    def removexattr(self, path, name):
+        full_path = self.full_path(path)
+        try:
+            return os.removexattr(full_path, name)
+        except OSError as e:
+            if e.errno == errno.ENOTSUP:
+                raise FuseOSError(errno.ENOTSUP)
+            if e.errno == errno.ENODATA:
+                raise FuseOSError(errno.ENODATA)
+            # General case
+            raise FuseOSError(errno.ENOTSUP)
+
+    def setxattr(self, path, name, value, options, position=0):
+        full_path = self.full_path(path)
+        try:
+            return os.setxattr(full_path, name, value, options)
+        except OSError:
+            raise FuseOSError(errno.ENOTSUP)
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:
