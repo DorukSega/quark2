@@ -6,6 +6,7 @@ pkgs.mkShell {
     python3
     (python3.withPackages (ps: with ps; [
       fusepy
+      matplotlib
       numpy
       torch
     ]))
