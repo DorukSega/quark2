@@ -1,5 +1,3 @@
-from modules.index import normalize_path
-
 # Try to import the C++ implementation
 from fcache_cpp import FileCacheManager as CppFileCacheManager
 
@@ -13,15 +11,12 @@ class FileCacheManager:
         self._root = '.'
     
     def request_file(self, filepath):
-        filepath = normalize_path(filepath)
         self._cpp_manager.request_file(filepath)
     
     def is_in_cache(self, filepath):
-        filepath = normalize_path(filepath)
         return self._cpp_manager.is_in_cache(filepath)
     
     def read_cache(self, filepath, size, offset):
-        filepath = normalize_path(filepath)
         return self._cpp_manager.read_cache(filepath, size, offset)
     
     def cache_status(self):
