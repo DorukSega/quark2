@@ -16,6 +16,7 @@ class QuarkFS(Operations):
     enable_opt: bool
 
     def __init__(self, root: str, optimizer: Base_Opt, fcache: FileCacheManager):
+        print(f'Optimizer: {optimizer.name}')
         self.root = os.path.realpath(root)
         self.OPTM = optimizer
         self.CACHE = fcache
@@ -55,11 +56,11 @@ class QuarkFS(Operations):
         def log_predict(p_header='Read'):  # logs the read and predicts next
             if self.OPTM.last_file_read() != path:
                 self.OPTM.log_read(path)
-                print(f"{p_header}: {path} @ offset {offset} size {size}")
+                #print(f"{p_header}: {path} @ offset {offset} size {size}")
                 if self.enable_opt:
                     predictions = self.OPTM.predict_nexts(path, num_predictions=2)
                     if predictions:
-                        print(f'Predicted: {predictions}')
+                        #print(f'Predicted: {predictions}')
                         if isinstance(predictions, str):
                             self.CACHE.request_file(predictions)
                         elif isinstance(predictions, list):  # TODO: confirm order works
@@ -81,7 +82,7 @@ class QuarkFS(Operations):
     def write(self, path, data, offset, fh):
         os.lseek(fh, offset, os.SEEK_SET)
         written = os.write(fh, data)
-        print(f"Write: {path} @ offset {offset} size {len(data)}")
+        #print(f"Write: {path} @ offset {offset} size {len(data)}")
         return written
 
     def create(self, path, mode, fi=None):
@@ -91,7 +92,6 @@ class QuarkFS(Operations):
 
     def chmod(self, path, mode):
         full_path = self.full_path(path)
-        print(f"Changing mode for: {path} to {oct(mode)}")
         return os.chmod(full_path, mode)
 
     def getattr(self, path, fh=None):
@@ -244,7 +244,7 @@ if __name__ == '__main__':
     source_dir = sys.argv[1]
     mount_point = sys.argv[2]
 
-    test_OPT = AdaptiveMarkov_Opt()
+    test_OPT = Markov_Opt()
     file_cache = FileCacheManager()
 
     # cmp --silent ./data/a ./test || echo "files are different"

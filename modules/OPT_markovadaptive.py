@@ -15,6 +15,7 @@ from modules.OPT_base import Base_Opt
 from collections import defaultdict
 
 class AdaptiveMarkov_Opt(Base_Opt):
+    name: str = 'Adaptive Weighted Markov'
     def __init__(self, history_length=5, learning_rate=0.1, decay=0.9):
         super().__init__()
         self.history_length = min(max(1, history_length), 10)  # Clamp between 1 and 10

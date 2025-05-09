@@ -1,8 +1,8 @@
-from os import path
 class Base_Opt:
     history: list[str] | list
     file_exists_cache: dict
     source_dir: str
+    name: str = 'Base'
 
     def __init__(self):
         self.history = []

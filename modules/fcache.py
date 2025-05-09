@@ -30,5 +30,3 @@ class FileCacheManager:
     def root(self, value):
         self._root = value
         self._cpp_manager.set_root(value)
-
-print("Using high-performance C++ FileCacheManager implementation")

@@ -5,6 +5,7 @@
 from modules.OPT_base import Base_Opt
 
 class SWG_Opt(Base_Opt):
+    name: str = 'Simple Weighted Graph'
     graph: dict
     '''
     Example Graph Structure:

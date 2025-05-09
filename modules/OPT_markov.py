@@ -1,6 +1,7 @@
 from modules.OPT_base import Base_Opt
 
 class Markov_Opt(Base_Opt):
+    name: str = 'Markov'
     def __init__(self, order=2):
         super().__init__()
         self.order = max(1, order)
