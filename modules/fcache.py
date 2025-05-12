@@ -6,7 +6,7 @@ class FileCacheManager:
     Python wrapper for the C++ FileCacheManager implementation.
     Maintains the same API as the original Python version.
     '''
-    def __init__(self, memory_limit=8 * 1024 ** 3, chunk_size=1024 * 1024):
+    def __init__(self, memory_limit=4 * 1024 ** 3, chunk_size=1024 * 1024):
         self._cpp_manager = CppFileCacheManager(memory_limit, chunk_size)
         self._root = '.'
     

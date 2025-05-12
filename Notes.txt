@@ -1,0 +1,66 @@
+mkdir data mountpoint
+python modules/setup.py build_ext --inplace
+
+./bench.py -files 20 -size 200000 -dir ./mountpoint -output ./test_res/nopt.json
+./bench.py -files 20 -size 200000 -dir ./mountpoint -output ./test_res/opt.json
+
+# X1
+## ADAPTIVE MARKOV
+### NOPT
+Pattern               | Duration  | MB/s    | Files/s
+----------------------|-----------|---------|---------
+Sequential           |     1.8  18s | 1074.23 |   11.00
+Reverse Sequential   |     1.870s | 1044.67 |   10.70
+Random               |     1.860s | 1050.34 |   10.76
+Zipfian              |     2.006s |  973.80 |    9.97
+Locality-Based       |     1.878s | 1039.76 |   10.65
+Repeated Access      |     2.013s |  970.31 |    9.94
+### OPT
+Pattern               | Duration  | MB/s    | Files/s
+----------------------|-----------|---------|---------
+Sequential           |     1.769s | 1104.00 |   11.30
+Reverse Sequential   |     1.749s | 1116.58 |   11.43
+Random               |     1.728s | 1130.23 |   11.57
+Zipfian              |     1.758s | 1111.00 |   11.38
+Locality-Based       |     1.732s | 1127.54 |   11.55
+Repeated Access      |     1.749s | 1116.66 |   11.43
+
+## MARKOV
+### NOPT
+Pattern               | Duration  | MB/s    | Files/s
+----------------------|-----------|---------|---------
+Sequential           |     1.809s | 1079.82 |   11.06
+Reverse Sequential   |     1.827s | 1069.23 |   10.95
+Random               |     1.844s | 1059.30 |   10.85
+Zipfian              |     1.998s |  977.69 |   10.01
+Locality-Based       |     1.833s | 1065.39 |   10.91
+Repeated Access      |     1.994s |  979.61 |   10.03
+### OPT
+Pattern               | Duration  | MB/s    | Files/s
+----------------------|-----------|---------|---------
+Sequential           |     1.784s | 1094.75 |   11.21
+Reverse Sequential   |     1.750s | 1116.13 |   11.43
+Random               |     1.755s | 1113.07 |   11.40
+Zipfian              |     1.757s | 1111.84 |   11.39
+Locality-Based       |     1.734s | 1126.31 |   11.53
+Repeated Access      |     1.756s | 1112.25 |   11.39
+
+
+#X230
+Pattern               | Duration  | MB/s    | Files/s
+----------------------|-----------|---------|---------
+Sequential           |     2.885s |  677.05 |    6.93
+Reverse Sequential   |     2.579s |  757.29 |    7.76
+Random               |     2.196s |  889.15 |    9.11
+Zipfian              |     2.145s |  910.56 |    9.32
+Locality-Based       |     1.985s |  983.79 |   10.07
+Repeated Access      |     2.166s |  901.36 |    9.23
+
+Pattern               | Duration  | MB/s    | Files/s
+----------------------|-----------|---------|---------
+Sequential           |     2.956s |  660.63 |    6.76
+Reverse Sequential   |     2.414s |  808.93 |    8.28
+Random               |     2.459s |  794.40 |    8.13
+Zipfian              |     2.419s |  807.31 |    8.27
+Locality-Based       |     2.320s |  841.75 |    8.62
+Repeated Access      |     2.276s |  857.96 |    8.79
