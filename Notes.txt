@@ -1,15 +1,18 @@
 mkdir data mountpoint
 python modules/setup.py build_ext --inplace
 
-./bench.py -files 20 -size 200000 -dir ./mountpoint -output ./test_res/nopt.json
-./bench.py -files 20 -size 200000 -dir ./mountpoint -output ./test_res/opt.json
+./bench -files 20 -size 200000 -dir ./mountpoint -output ./test_res/20files_200MB_nopt.json
+./bench -files 20 -size 200000 -dir ./mountpoint -output ./test_res/20files_200MB_opt.json
+
+./bench -files 20 -size 100000 -dir ./mountpoint -output ./test_res/20files_100MB_nopt.json
+./bench -files 20 -size 100000 -dir ./mountpoint -output ./test_res/20files_100MB_opt.json
 
 # X1
 ## ADAPTIVE MARKOV
 ### NOPT
 Pattern               | Duration  | MB/s    | Files/s
 ----------------------|-----------|---------|---------
-Sequential           |     1.8  18s | 1074.23 |   11.00
+Sequential           |   1.818s   | 1074.23 |   11.00
 Reverse Sequential   |     1.870s | 1044.67 |   10.70
 Random               |     1.860s | 1050.34 |   10.76
 Zipfian              |     2.006s |  973.80 |    9.97
